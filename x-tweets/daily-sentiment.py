@@ -1,4 +1,5 @@
 import os
+import re
 import requests
 import pandas as pd
 import numpy as np
@@ -10,6 +11,10 @@ from scipy.stats import pearsonr
 import matplotlib.pyplot as plt
 import seaborn as sns
 from tqdm import tqdm
+import nltk
+
+nltk.download('stopwords')
+from nltk.corpus import stopwords
 
 sns.set(style="whitegrid")
 
@@ -18,6 +23,18 @@ vader = SentimentIntensityAnalyzer()
 roberta = pipeline("sentiment-analysis", model="cardiffnlp/twitter-roberta-base-sentiment", device=-1)
 roberta_large = pipeline("sentiment-analysis", model="siebert/sentiment-roberta-large-english", device=-1)
 bertweet = pipeline("sentiment-analysis", model="finiteautomata/bertweet-base-sentiment-analysis", device=-1)
+
+stop_words = set(stopwords.words('english'))
+
+def clean_text(text):
+    text = text.lower()
+    text = re.sub(r"http\S+", "", text)
+    text = re.sub(r"@\w+", "", text)
+    text = re.sub(r"#\w+", "", text)
+    text = re.sub(r"[^\w\s]", "", text)
+    tokens = text.split()
+    tokens = [word for word in tokens if word not in stop_words]
+    return " ".join(tokens)
 
 files = [f"{i}.txt" for i in range(11, 31)]
 data = []
@@ -56,6 +73,8 @@ for filename in files:
             username, date = meta.split(" | ") if " | " in meta else ("unknown", "unknown")
             short_date = date[:10]
 
+            text = clean_text(text)
+
             try:
                 vader_score = vader.polarity_scores(text)['compound']
                 vader_label = "positive" if vader_score > 0.05 else "negative" if vader_score < -0.05 else "neutral"
@@ -78,7 +97,7 @@ for filename in files:
                 roberta_large_label = "neutral"
 
             try:
-                bertweet_label = map_bertweet(bertweet(text[:128])[0]['label'])  # limit to 128 tokens
+                bertweet_label = map_bertweet(bertweet(text[:128])[0]['label'])
             except:
                 bertweet_label = "neutral"
 
