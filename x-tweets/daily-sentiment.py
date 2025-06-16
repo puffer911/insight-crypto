@@ -27,14 +27,14 @@ bertweet = pipeline("sentiment-analysis", model="finiteautomata/bertweet-base-se
 stop_words = set(stopwords.words('english'))
 
 def clean_text(text):
-    text = text.lower()
-    text = re.sub(r"http\S+", "", text)
-    text = re.sub(r"@\w+", "", text)
-    text = re.sub(r"#\w+", "", text)
-    text = re.sub(r"[^\w\s]", "", text)
-    tokens = text.split()
-    tokens = [word for word in tokens if word not in stop_words]
-    return " ".join(tokens)
+    text = text.lower()  # Convert all text to lowercase to ensure uniformity
+    text = re.sub(r"http\S+", "", text)  # Remove URLs (anything starting with 'http')
+    text = re.sub(r"@\w+", "", text)  # Remove user mentions (e.g., '@username')
+    text = re.sub(r"#\w+", "", text)  # Remove hashtags (e.g., '#topic')
+    text = re.sub(r"[^\w\s]", "", text)  # Remove punctuation (anything not a word or whitespace)
+    tokens = text.split()  # Split text into individual words (tokens)
+    tokens = [word for word in tokens if word not in stop_words]  # Remove stop words (common, uninformative words)
+    return " ".join(tokens)  # Rejoin the cleaned tokens into a single string
 
 files = [f"{i}.txt" for i in range(11, 31)]
 data = []
